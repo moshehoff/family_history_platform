@@ -1,0 +1,85 @@
+name: Deploy Family History to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. Checkout with submodules
+      - name: Checkout repository with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      
+      # 2. Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      # 3. Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      
+      # 4. Install Python dependencies
+      - name: Install Python dependencies
+        run: pip install gedcom
+      
+      # 5. Generate profiles from GEDCOM
+      - name: Generate profiles
+        env:
+          BASE_URL: ${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+        run: |
+          python platform/scripts/doit.py \
+            --bios-dir bios \
+            --src-content-dir content \
+            --output platform/site/content/profiles \
+            data/tree.ged
+      
+      # 6. Install Node dependencies
+      - name: Install Node dependencies
+        working-directory: platform/site
+        run: npm ci
+      
+      # 7. Build Quartz site
+      - name: Build Quartz site
+        working-directory: platform/site
+        env:
+          BASE_URL: ${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+        run: npx quartz build
+      
+      # 8. Upload to GitHub Pages
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: platform/site/public
+      
+      # 9. Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+      
+      # 10. Summary
+      - name: Deployment Summary
+        run: |
+          echo "🚀 Deployment complete!"
+          echo "🌐 Site URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+
