@@ -470,6 +470,20 @@ class MermaidDiagramBuilder:
                 if child_id != person_id:
                     sibling_node = self._make_node(lines, child_id)
                     lines.append(f'{parent_node} --> {sibling_node}')
+        
+        else:
+            # No parents - connect siblings through a shared connection node
+            siblings = [child_id for child_id in fam.get("children", []) if child_id != person_id]
+            if siblings:
+                # Create a connection node for siblings without parents
+                sibling_connection = f'siblings_{self._node_id(fam["id"])}'
+                lines.append(f'{sibling_connection}((" "))')
+                lines.append(f'{sibling_connection} --> {person_node}')
+                
+                # Add siblings
+                for child_id in siblings:
+                    sibling_node = self._make_node(lines, child_id)
+                    lines.append(f'{sibling_connection} --> {sibling_node}')
     
     def _add_descendants_recursive(
         self,
