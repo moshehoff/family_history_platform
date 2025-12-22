@@ -17,6 +17,7 @@ from typing import Dict
 from gedcom.normalizer import norm_individual, norm_family
 from utils.logger import get_logger
 from utils.file_utils import copy_file_safe, copy_directory_safe, remove_directory_safe
+from config import DEFAULT_OUTPUT_DIR, DEFAULT_STATIC_DIR
 
 logger = get_logger(__name__)
 
@@ -388,17 +389,27 @@ def clean_project():
     """Remove all generated files and build outputs."""
     logger.info("Cleaning project...")
     
+    # Calculate paths based on output directory
+    # DEFAULT_OUTPUT_DIR is like "platform/site/content/profiles"
+    # Extract base content directory (remove /profiles)
+    output_base = os.path.dirname(DEFAULT_OUTPUT_DIR)  # e.g., "platform/site/content"
+    content_dir = output_base  # e.g., "platform/site/content"
+    site_dir = os.path.dirname(output_base)  # e.g., "platform/site"
+    
+    # Calculate static directory paths
+    static_dir = DEFAULT_STATIC_DIR  # e.g., "platform/site/quartz/static"
+    
     paths_to_remove = [
-        "site/content",  # All content (profiles, index.md, pages/)
-        "site/public",   # Quartz build output
-        "site/.quartz-cache",  # Quartz cache
-        "site/site",  # Accidentally created nested directory
-        "site/quartz/static/family-data.json",  # Generated family data
-        "site/quartz/static/media-index.json",  # Generated media index
-        "site/quartz/static/chapters-index.json",  # Generated chapters index
-        "site/quartz/static/backlinks-index.json",  # Generated backlinks index
-        "site/quartz/static/documents",  # Copied documents directory
-        "site/quartz/static/chapters",  # Copied chapters directory
+        content_dir,  # All content (profiles, index.md, pages/)
+        os.path.join(site_dir, "public"),   # Quartz build output
+        os.path.join(site_dir, ".quartz-cache"),  # Quartz cache
+        os.path.join(site_dir, "site"),  # Accidentally created nested directory
+        os.path.join(static_dir, "family-data.json"),  # Generated family data
+        os.path.join(static_dir, "media-index.json"),  # Generated media index
+        os.path.join(static_dir, "chapters-index.json"),  # Generated chapters index
+        os.path.join(static_dir, "backlinks-index.json"),  # Generated backlinks index
+        os.path.join(static_dir, "documents"),  # Copied documents directory
+        os.path.join(static_dir, "chapters"),  # Copied chapters directory
     ]
     
     for path in paths_to_remove:

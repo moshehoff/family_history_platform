@@ -21,8 +21,6 @@ site/public/
 site/.quartz-cache/
 site/**/.quartz-cache/
 site/node_modules/
-site/package-lock.json
-site/quartz/bootstrap-*.mjs
 
 # Generated content (will be in family repos)
 site/content/

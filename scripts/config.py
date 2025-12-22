@@ -44,11 +44,13 @@ PLACE_TO_WIKI = {
 }
 
 # Default directories
-DEFAULT_OUTPUT_DIR = "site/content/profiles"
+# Note: These assume the script is run from the project root (e.g., HoffmanFamily/)
+# where platform/ is a submodule
+DEFAULT_OUTPUT_DIR = "platform/site/content/profiles"
 DEFAULT_BIOS_DIR = "bios"
 DEFAULT_CONTENT_DIR = "content"
 DEFAULT_DOCUMENTS_DIR = "documents"
-DEFAULT_STATIC_DIR = "site/quartz/static"
+DEFAULT_STATIC_DIR = "platform/site/quartz/static"
 
 # Logging format
 LOG_FORMAT = "[%(asctime)s] [%(levelname)s] %(name)s: %(message)s"
