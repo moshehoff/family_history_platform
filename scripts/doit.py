@@ -17,6 +17,7 @@ from config import DEFAULT_OUTPUT_DIR, DEFAULT_BIOS_DIR, DEFAULT_CONTENT_DIR, DE
 from utils.logger import setup_logger
 from gedcom.parser import parse_gedcom_file
 from gedcom.normalizer import analyze_places, print_place_analysis
+from gedcom.merger import merge_gedcom_files
 from generators.profile_generator import ProfileGenerator
 from generators.mermaid_builder import MermaidDiagramBuilder
 from generators.media_handler import MediaIndexHandler
@@ -112,6 +113,7 @@ def main():
         epilog="""
 Examples:
   %(prog)s data/tree.ged                    # Generate with defaults
+  %(prog)s data/tree1.ged data/tree2.ged    # Merge multiple GEDCOM files
   %(prog)s data/tree.ged --debug            # Generate with debug output
   %(prog)s data/tree.ged --analyze-places   # Analyze places in GEDCOM
   %(prog)s --clean                          # Clean generated files
@@ -119,9 +121,9 @@ Examples:
     )
     
     argp.add_argument(
-        "gedcom_file",
-        nargs="?",
-        help="Path to .ged file"
+        "gedcom_files",
+        nargs="+",
+        help="Path(s) to .ged file(s). If multiple files provided, they will be merged."
     )
     
     argp.add_argument(
@@ -201,8 +203,8 @@ Examples:
         return
     
     # Require GEDCOM file for other operations
-    if not args.gedcom_file:
-        argp.error("gedcom_file is required (unless using --clean)")
+    if not args.gedcom_files:
+        argp.error("gedcom_files is required (unless using --clean)")
 
     # Always clean before building
     logger.info("Cleaning previous build...")
@@ -213,9 +215,17 @@ Examples:
     if not os.path.exists(args.bios_dir):
         os.makedirs(args.bios_dir, exist_ok=True)
 
-    # Parse GEDCOM file
-    logger.info(f"Processing GEDCOM file: {args.gedcom_file}")
-    individuals, families = parse_gedcom_file(args.gedcom_file)
+    # Parse and merge GEDCOM files
+    if len(args.gedcom_files) == 1:
+        # Single file - use existing parser
+        logger.info(f"Processing single GEDCOM file: {args.gedcom_files[0]}")
+        individuals, families = parse_gedcom_file(args.gedcom_files[0])
+    else:
+        # Multiple files - merge them
+        logger.info(f"Merging {len(args.gedcom_files)} GEDCOM files...")
+        # Use file names as source names for better logging
+        source_names = [os.path.basename(f) for f in args.gedcom_files]
+        individuals, families = merge_gedcom_files(args.gedcom_files, source_names)
     
     # Handle analyze-places command
     if args.analyze_places:
