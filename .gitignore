@@ -26,6 +26,27 @@ site/quartz/bootstrap-*.mjs
 
 # Generated content (will be in family repos)
 site/content/
+site/quartz/static/family-data.json
+site/quartz/static/media-index.json
+site/quartz/static/chapters-index.json
+site/quartz/static/backlinks-index.json
+site/quartz/static/id-to-slug.json
+site/quartz/static/chapters/
+site/quartz/static/documents/
+site/content/profiles/
+!site/content/profiles/.gitkeep
+
+# Copied source content (tracked in content/ directory)
+site/content/index.md
+site/content/pages/
+
+# Images copied from bios/ to site/content/
+site/content/*.png
+site/content/*.jpg
+site/content/*.jpeg
+site/content/*.gif
+site/content/*.webp
+site/content/Pasted*.png
 
 # OS files
 .DS_Store
