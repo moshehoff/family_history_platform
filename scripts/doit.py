@@ -122,7 +122,7 @@ Examples:
     
     argp.add_argument(
         "gedcom_files",
-        nargs="+",
+        nargs="*",
         help="Path(s) to .ged file(s). If multiple files provided, they will be merged."
     )
     

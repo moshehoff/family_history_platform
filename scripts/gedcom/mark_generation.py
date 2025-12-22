@@ -616,15 +616,13 @@ Examples:
     logger.info(f"Found {target_count} people to mark (including spouses and descendants)")
     logger.info(f"Will mark them with tag: {tag_name}")
     
-    # Show summary (first 10, then count)
-    logger.info("People to be marked (showing first 10):")
+    # Show summary (all people)
+    logger.info("People to be marked:")
     sorted_people = sorted(people_to_mark)
-    for person_id in sorted_people[:10]:
+    for person_id in sorted_people:
         person = individuals.get(person_id, {})
         name = person.get("NAME", "Unknown")
         logger.info(f"  {person_id}: {name}")
-    if len(sorted_people) > 10:
-        logger.info(f"  ... and {len(sorted_people) - 10} more")
     
     # Add tags to GEDCOM file
     add_custom_tag_to_gedcom(
