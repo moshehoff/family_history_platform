@@ -25,6 +25,7 @@ site/node_modules/
 # Generated content (will be in family repos)
 site/content/
 site/quartz/static/family-data.json
+site/quartz/static/family-trees.json
 site/quartz/static/media-index.json
 site/quartz/static/chapters-index.json
 site/quartz/static/backlinks-index.json
