@@ -42,15 +42,29 @@ def merge_individuals(individuals1: Dict, individuals2: Dict, source1_name: str 
     merged = individuals1.copy()
     conflicts = []
     
+    # Mark all individuals from first source
+    for indi_id in merged:
+        if "_SOURCE" not in merged[indi_id]:
+            merged[indi_id]["_SOURCE"] = source1_name
+    
     for indi_id, indi2_data in individuals2.items():
         if indi_id in merged:
-            # Person exists in both - merge the data
+            # Person exists in both trees - merge the data
             indi1_data = merged[indi_id]
             conflicts.extend(_check_individual_consistency(indi_id, indi1_data, indi2_data, source1_name, source2_name))
             merged[indi_id] = _merge_individual_data(indi1_data, indi2_data, source1_name, source2_name)
-            logger.debug(f"Merged individual {indi_id}: {merged[indi_id].get('NAME', 'Unknown')}")
+            
+            # Add second source to _SOURCE (person belongs to both trees)
+            current_source = merged[indi_id].get("_SOURCE", source1_name)
+            if source2_name not in current_source:
+                if current_source:
+                    merged[indi_id]["_SOURCE"] = current_source + ", " + source2_name
+                else:
+                    merged[indi_id]["_SOURCE"] = source2_name
+            logger.debug(f"Merged individual {indi_id}: {merged[indi_id].get('NAME', 'Unknown')} (sources: {merged[indi_id].get('_SOURCE')})")
         else:
-            # New person - just add it
+            # New person - mark with source
+            indi2_data["_SOURCE"] = source2_name
             merged[indi_id] = indi2_data
             logger.debug(f"Added new individual {indi_id}: {indi2_data.get('NAME', 'Unknown')}")
     
@@ -385,13 +399,17 @@ def merge_gedcom_files(file_paths: List[str], source_names: List[str] = None) ->
     individuals, families = parse_gedcom_file(file_paths[0])
     logger.info(f"Loaded {source_names[0]}: {len(individuals)} individuals, {len(families)} families")
     
+    # Mark all individuals from first source
+    for indi_id in individuals:
+        individuals[indi_id]["_SOURCE"] = source_names[0]
+    
     # Merge remaining files
     for i, file_path in enumerate(file_paths[1:], 1):
         indi2, fam2 = parse_gedcom_file(file_path)
         logger.info(f"Loaded {source_names[i]}: {len(indi2)} individuals, {len(fam2)} families")
         
-        individuals = merge_individuals(individuals, indi2, "Merged", source_names[i])
-        families = merge_families(families, fam2, "Merged", source_names[i])
+        individuals = merge_individuals(individuals, indi2, source_names[0], source_names[i])
+        families = merge_families(families, fam2, source_names[0], source_names[i])
     
     logger.info(f"Final merged result: {len(individuals)} individuals, {len(families)} families")
     return individuals, families

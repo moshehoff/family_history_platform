@@ -520,3 +520,182 @@ def _create_empty_gallery_index(pages_dir: str):
     except Exception as e:
         logger.error(f"Failed to write empty gallery index: {e}")
 
+
+def write_family_pages(individuals: Dict, people_dir: str, pages_dir: str, id_to_slug: Dict):
+    """
+    Create a page for each family tree/source.
+    Each page lists all profiles from that tree.
+    If a person appears in multiple trees, they will appear in all relevant pages.
+    
+    Args:
+        individuals: Raw individuals dictionary from GEDCOM
+        people_dir: Directory containing profile markdown files
+        pages_dir: Directory to write family pages to
+        id_to_slug: Mapping from person ID to slug
+    """
+    logger.info("Creating family tree pages...")
+    
+    # Group individuals by source
+    families_by_source = {}
+    for pid, person_data in individuals.items():
+        source = person_data.get("_SOURCE", "Unknown")
+        # Handle multiple sources (comma-separated)
+        sources = [s.strip() for s in source.split(",")]
+        for src in sources:
+            if src not in families_by_source:
+                families_by_source[src] = []
+            if pid not in families_by_source[src]:
+                families_by_source[src].append(pid)
+    
+    os.makedirs(pages_dir, exist_ok=True)
+    
+    # Create a page for each family
+    for source_name, person_ids in families_by_source.items():
+        # Remove .ged extension if present, and create slug-friendly filename
+        clean_name = source_name
+        if clean_name.endswith('.ged'):
+            clean_name = clean_name[:-4]  # Remove .ged
+        
+        family_slug = clean_name.lower().replace(" ", "-").replace("_", "-")
+        family_slug = "".join(c for c in family_slug if c.isalnum() or c == "-")
+        
+        # Use clean name for display (without .ged)
+        display_name = clean_name.replace("_", " ").title()
+        
+        # Get profile links for this family
+        lines = [
+            f"---",
+            f"title: {display_name}",
+            f"---",
+            f"",
+            f"## {display_name}",
+            f"",
+            f"This page lists all family members from the {display_name} tree.",
+            f""
+        ]
+        
+        # Sort by name for display
+        profiles = []
+        for pid in person_ids:
+            person = individuals[pid]
+            name = person.get("NAME", "Unknown")
+            slug = id_to_slug.get(pid, None)
+            if slug:
+                display_name_profile = slug.replace('-', ' ')
+                url = "/profiles/" + urllib.parse.quote(slug)
+                profiles.append((name, display_name_profile, url))
+        
+        profiles.sort(key=lambda x: x[0])  # Sort by name
+        
+        if profiles:
+            lines.append(f"**Total: {len(profiles)} profiles**\n")
+            for name, display_name_profile, url in profiles:
+                lines.append(f"* [{display_name_profile}]({url})")
+        else:
+            lines.append("*No profiles available.*")
+        
+        output_path = os.path.join(pages_dir, f"family-{family_slug}.md")
+        try:
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write("\n".join(lines) + "\n")
+            logger.info(f"Created family page: family-{family_slug}.md with {len(profiles)} profiles")
+        except Exception as e:
+            logger.error(f"Failed to write family-{family_slug}.md: {e}")
+
+
+def write_family_trees_json(individuals: Dict, static_dir: str):
+    """
+    Create family-trees.json that maps tree name to list of profile IDs.
+    This is used by JavaScript to filter images by family tree.
+    
+    Args:
+        individuals: Raw individuals dictionary from GEDCOM
+        static_dir: Directory to write JSON file to
+    """
+    logger.info("Creating family-trees.json...")
+    
+    # Group individuals by source
+    families_by_source = {}
+    for pid, person_data in individuals.items():
+        source = person_data.get("_SOURCE", "Unknown")
+        # Handle multiple sources (comma-separated)
+        sources = [s.strip() for s in source.split(",")]
+        for src in sources:
+            # Remove .ged extension if present
+            clean_source = src
+            if clean_source.endswith('.ged'):
+                clean_source = clean_source[:-4]
+            
+            if clean_source not in families_by_source:
+                families_by_source[clean_source] = []
+            # Store GEDCOM ID without @ symbols (as used in media-index.json)
+            clean_id = pid.strip("@")
+            if clean_id not in families_by_source[clean_source]:
+                families_by_source[clean_source].append(clean_id)
+    
+    os.makedirs(static_dir, exist_ok=True)
+    output_path = os.path.join(static_dir, "family-trees.json")
+    
+    try:
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(families_by_source, f, ensure_ascii=False, indent=2)
+        logger.info(f"Created family-trees.json with {len(families_by_source)} trees")
+    except Exception as e:
+        logger.error(f"Failed to write family-trees.json: {e}")
+
+
+def write_family_images_pages(individuals: Dict, pages_dir: str):
+    """
+    Create image gallery pages for each family tree.
+    Similar to all-images.md but filtered by family tree.
+    
+    Args:
+        individuals: Raw individuals dictionary from GEDCOM
+        pages_dir: Directory to write family image pages to
+    """
+    logger.info("Creating family image gallery pages...")
+    
+    # Group individuals by source
+    families_by_source = {}
+    for pid, person_data in individuals.items():
+        source = person_data.get("_SOURCE", "Unknown")
+        sources = [s.strip() for s in source.split(",")]
+        for src in sources:
+            clean_source = src
+            if clean_source.endswith('.ged'):
+                clean_source = clean_source[:-4]
+            
+            if clean_source not in families_by_source:
+                families_by_source[clean_source] = []
+    
+    os.makedirs(pages_dir, exist_ok=True)
+    
+    # Create a page for each family
+    for source_name in families_by_source.keys():
+        # Create slug-friendly filename
+        family_slug = source_name.lower().replace(" ", "-").replace("_", "-")
+        family_slug = "".join(c for c in family_slug if c.isalnum() or c == "-")
+        
+        # Use clean name for display
+        display_name = source_name.replace("_", " ").title()
+        
+        # Create markdown file similar to all-images.md
+        # Note: data-family-tree is not needed here - JavaScript will extract it from the slug
+        lines = [
+            f"---",
+            f"title: {display_name} Images",
+            f"---",
+            f"",
+            f"<div id=\"all-images-gallery-container\">",
+            f"  <div class=\"loading-message\">Loading images from {display_name}...</div>",
+            f"</div>",
+            f""
+        ]
+        
+        output_path = os.path.join(pages_dir, f"family-{family_slug}-images.md")
+        try:
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write("\n".join(lines) + "\n")
+            logger.info(f"Created family image page: family-{family_slug}-images.md")
+        except Exception as e:
+            logger.error(f"Failed to write family-{family_slug}-images.md: {e}")

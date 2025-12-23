@@ -30,7 +30,10 @@ from generators.index_generators import (
     write_family_data_json,
     write_id_to_slug_json,
     copy_source_content,
-    clean_project
+    clean_project,
+    write_family_pages,
+    write_family_trees_json,
+    write_family_images_pages
 )
 
 
@@ -220,6 +223,10 @@ Examples:
         # Single file - use existing parser
         logger.info(f"Processing single GEDCOM file: {args.gedcom_files[0]}")
         individuals, families = parse_gedcom_file(args.gedcom_files[0])
+        # Mark all individuals with source name (use filename without extension)
+        source_name = os.path.splitext(os.path.basename(args.gedcom_files[0]))[0]
+        for indi_id in individuals:
+            individuals[indi_id]["_SOURCE"] = source_name
     else:
         # Multiple files - merge them
         logger.info(f"Merging {len(args.gedcom_files)} GEDCOM files...")
@@ -291,6 +298,12 @@ Examples:
     write_gallery_index(people_dir, DEFAULT_STATIC_DIR, pages_dir)
     write_family_data_json(individuals, families, args.output)
     write_id_to_slug_json(id_to_slug, args.output, DEFAULT_STATIC_DIR)
+    
+    # Write family tree pages
+    logger.info("Creating family tree pages...")
+    write_family_pages(individuals, people_dir, pages_dir, id_to_slug)
+    write_family_trees_json(individuals, DEFAULT_STATIC_DIR)
+    write_family_images_pages(individuals, pages_dir)
     
     logger.info("=" * 70)
     logger.info("✓ Done!")

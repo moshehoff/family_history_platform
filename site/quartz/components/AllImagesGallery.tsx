@@ -4,20 +4,33 @@ import { pathToRoot } from "../util/path"
 
 export default (() => {
   const AllImagesGallery: QuartzComponent = ({ displayClass, fileData }: QuartzComponentProps) => {
-    // Check if this is the all-images page
+    // Check if this is the all-images page or a family images page
     const isAllImagesPage = fileData.slug === "pages/all-images"
+    const isFamilyImagesPage = fileData.slug?.startsWith("pages/family-") && fileData.slug?.endsWith("-images")
     
-    if (!isAllImagesPage) {
+    if (!isAllImagesPage && !isFamilyImagesPage) {
       return null
     }
 
     // Get base path for this page (relative path to root)
     const basePath = pathToRoot(fileData.slug!)
+    
+    // Get family tree name if this is a family page
+    const familyTreeName = isFamilyImagesPage 
+      ? fileData.slug?.replace("pages/family-", "").replace("-images", "")
+      : null
 
     return (
-      <div class={classNames(displayClass, "all-images-gallery")} id="all-images-gallery-wrapper" data-base-path={basePath}>
+      <div 
+        class={classNames(displayClass, "all-images-gallery")} 
+        id="all-images-gallery-wrapper" 
+        data-base-path={basePath}
+        data-family-tree={familyTreeName || ""}
+      >
         <div id="all-images-gallery-container">
-          <div class="loading-message">Loading all images...</div>
+          <div class="loading-message">
+            {isAllImagesPage ? "Loading all images..." : `Loading images from ${familyTreeName}...`}
+          </div>
         </div>
       </div>
     )
@@ -143,41 +156,91 @@ div.all-images-gallery .gallery-grid {
       pageBasePath = pageBasePath + '/';
     }
     
-    fetch(pageBasePath + 'static/media-index.json')
-      .then(function(response) {
-        if (!response.ok) throw new Error('No media index');
-        return response.json();
-      })
-      .then(function(data) {
-        // Collect all images from all profiles
-        const allImages = [];
-        const seenPaths = new Set(); // Track unique image paths
+    // Get family tree name if this is a family page
+    const familyTreeName = galleryElement ? galleryElement.getAttribute('data-family-tree') || '' : '';
+    const isFamilyPage = familyTreeName !== '';
+    
+    // Load both media-index.json and family-trees.json
+    Promise.all([
+      fetch(pageBasePath + 'static/media-index.json')
+        .then(function(response) {
+          if (!response.ok) throw new Error('No media index');
+          return response.json();
+        }),
+      isFamilyPage 
+        ? fetch(pageBasePath + 'static/family-trees.json')
+            .then(function(response) {
+              if (!response.ok) throw new Error('No family trees index');
+              return response.json();
+            })
+        : Promise.resolve(null)
+    ])
+    .then(function([mediaData, familyTreesData]) {
+      // Get list of profile IDs to include
+      let profileIdsToInclude = null;
+      if (isFamilyPage && familyTreesData) {
+        // Find the family tree
+        // familyTreeName comes from slug (e.g., "aron-zits"), but JSON keys use underscores (e.g., "aron_zits")
+        let familyKey = familyTreeName.replace(/-/g, '_');  // Convert dashes to underscores
+        console.log('[AllImagesGallery] Looking for family key:', familyKey);
+        console.log('[AllImagesGallery] Available keys:', Object.keys(familyTreesData));
         
-        // Iterate through all profiles
-        for (const profileId in data.images) {
-          const images = data.images[profileId] || [];
-          for (const img of images) {
-            // Build the image path
-            let imagePath;
-            if (img.path) {
-              imagePath = pageBasePath + (img.path.startsWith('/') ? img.path.substring(1) : img.path);
-            } else {
-              imagePath = pageBasePath + 'static/documents/' + profileId + '/' + img.filename;
-            }
-            
-            // Only add if we haven't seen this path before
-            if (!seenPaths.has(imagePath)) {
-              seenPaths.add(imagePath);
-              allImages.push({
-                path: imagePath,
-                caption: img.caption || '',
-                filename: img.filename || ''
-              });
-            }
-          }
+        if (!(familyKey in familyTreesData)) {
+          // Try with .ged extension
+          familyKey = familyTreeName.replace(/-/g, '_') + '.ged';
+          console.log('[AllImagesGallery] Trying with .ged extension:', familyKey);
         }
         
-        console.log('[AllImagesGallery] Found', allImages.length, 'unique images');
+        if (familyKey in familyTreesData) {
+          profileIdsToInclude = new Set(familyTreesData[familyKey]);
+          console.log('[AllImagesGallery] Found', profileIdsToInclude.size, 'profiles for family:', familyKey);
+        } else {
+          console.warn('[AllImagesGallery] Family tree not found:', familyTreeName, 'tried:', familyKey);
+          container.innerHTML = '<div class="empty-message">Family tree not found: ' + familyTreeName + '</div>';
+          return;
+        }
+      }
+      
+      console.log('[AllImagesGallery] isFamilyPage:', isFamilyPage, 'profileIdsToInclude:', profileIdsToInclude ? profileIdsToInclude.size : 'null');
+      
+      // Collect images from relevant profiles
+      const allImages = [];
+      const seenPaths = new Set(); // Track unique image paths
+      let skippedProfiles = 0;
+      let includedProfiles = 0;
+      
+      for (const profileId in mediaData.images) {
+        // Skip if this is a family page and profile is not in the family
+        if (profileIdsToInclude && !profileIdsToInclude.has(profileId)) {
+          skippedProfiles++;
+          continue;
+        }
+        
+        includedProfiles++;
+        const images = mediaData.images[profileId] || [];
+        for (const img of images) {
+          // Build the image path
+          let imagePath;
+          if (img.path) {
+            imagePath = pageBasePath + (img.path.startsWith('/') ? img.path.substring(1) : img.path);
+          } else {
+            imagePath = pageBasePath + 'static/documents/' + profileId + '/' + img.filename;
+          }
+          
+          // Only add if we haven't seen this path before
+          if (!seenPaths.has(imagePath)) {
+            seenPaths.add(imagePath);
+            allImages.push({
+              path: imagePath,
+              caption: img.caption || '',
+              filename: img.filename || ''
+            });
+          }
+        }
+      }
+      
+      console.log('[AllImagesGallery] Found', allImages.length, 'images' + (isFamilyPage ? ' for family ' + familyTreeName : ''));
+      console.log('[AllImagesGallery] Included profiles:', includedProfiles, 'Skipped profiles:', skippedProfiles);
         
         if (allImages.length === 0) {
           container.innerHTML = '<div class="empty-message">No images available</div>';

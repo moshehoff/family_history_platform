@@ -13,7 +13,9 @@ export const sharedPageComponents: SharedLayout = {
     }),
     Component.ConditionalRender({
       component: Component.AllImagesGallery(),
-      condition: (page) => page.fileData.slug === "pages/all-images",
+      condition: (page) => 
+        page.fileData.slug === "pages/all-images" || 
+        (page.fileData.slug?.startsWith("pages/family-") && page.fileData.slug?.endsWith("-images")),
     }),
   ],
   footer: Component.Footer({

@@ -1,0 +1,142 @@
+---
+type: profile
+title: Moshe משה Hoffman Hochman
+ID: I11052340
+---
+<div class="profile-info-box">
+<dl class="profile-info-list">
+<dt>Nick:</dt><dd>Morrie, Morris, Morry</dd>
+<dt>Birth:</dt><dd>circa 1884 at <a href="https://en.wikipedia.org/wiki/Savran,_Ukraine">Savran, Podolia, Odessa oblast, Ukraine</a></dd>
+<dt>Death:</dt><dd>April 7, 1973 at <a href="https://en.wikipedia.org/wiki/Perth,_Western_Australia">Perth, Australia</a></dd>
+<dt>Occupation:</dt><dd>wheelwright, publican, businessman</dd>
+<dt>Parents:</dt><dd><a href="/profiles/Wolf-%D7%96%D7%90%D7%91-Hochman">Wolf זאב Hochman</a>, <a href="/profiles/Beile-%D7%91%D7%99%D7%99%D7%9C%D7%90-Hochman-Elizafan">Beile ביילא Hochman Elizafan</a></dd>
+<dt>Siblings:</dt><dd><a href="/profiles/Shimon-Meir-%D7%9E%D7%90%D7%99%D7%A8-Hochman">Shimon Meir מאיר Hochman</a>, <a href="/profiles/Yisrael-Hochman">Yisrael Hochman</a>, <a href="/profiles/Binyamin-Hochman">Binyamin Hochman</a>, <a href="/profiles/Kolman-Hochman">Kolman Hochman</a>, <a href="/profiles/Avraham-Hochman">Avraham Hochman</a>, <a href="/profiles/_Bobka_-Hochman">"Bobka" Hochman</a>, <a href="/profiles/Haim-Yehuda-%D7%97%D7%99%D7%99%D7%9D-%D7%99%D7%94%D7%95%D7%93%D7%94-Hochman">Haim Yehuda חיים יהודה Hochman</a>, <a href="/profiles/Josef-Hochman">Josef Hochman</a>, <a href="/profiles/Sholem-Hochman">Sholem Hochman</a></dd>
+<dt>Spouse:</dt><dd><a href="/profiles/Tobl-Hochman-%28Hoffman%29-Zitserman">Tobl Hochman (Hoffman) Zitserman</a></dd>
+<dt>Children:</dt><dd><a href="/profiles/Bella-Hoffman">Bella Hoffman</a>, <a href="/profiles/Aaron-Harry-%D7%90%D7%94%D7%A8%D7%95%D7%9F-Hoffman">Aaron Harry אהרון Hoffman</a>, <a href="/profiles/Wolf-Hoffman-Valda">Wolf Hoffman</a>, <a href="/profiles/Alyce-Breazeale-Hoffman">Alyce Breazeale Hoffman</a>, <a href="/profiles/Hyman-Judah-Hoffman">Hyman Judah Hoffman</a>, <a href="/profiles/Jack-Hoffman">Jack Hoffman</a></dd>
+</dl>
+</div>
+
+---
+
+## Immediate Family
+```mermaid
+flowchart TD
+classDef person fill:#e1f5fe,stroke:#0277bd,stroke-width:2px;
+classDef internal-link fill:#e1f5fe,stroke:#0277bd,stroke-width:2px;
+classDef current fill:#bbdefb,stroke:#1976d2,stroke-width:3px;
+idI11052340["Moshe משה Hoffman Hochman"]
+class idI11052340 current
+click idI11052340 "../profiles/Moshe-%D7%9E%D7%A9%D7%94-Hoffman-Hochman" "Moshe משה Hoffman Hochman"
+idI11032885["Wolf זאב Hochman"]
+class idI11032885 internal-link
+click idI11032885 "../profiles/Wolf-%D7%96%D7%90%D7%91-Hochman" "Wolf זאב Hochman"
+idI11032895["Beile ביילא Hochman Elizafan"]
+class idI11032895 internal-link
+click idI11032895 "../profiles/Beile-%D7%91%D7%99%D7%99%D7%9C%D7%90-Hochman-Elizafan" "Beile ביילא Hochman Elizafan"
+marriage_idF3770106((" "))
+idI11032885 --- marriage_idF3770106
+idI11032895 --- marriage_idF3770106
+marriage_idF3770106 --> idI11052340
+idI11060285["Shimon Meir מאיר Hochman"]
+class idI11060285 internal-link
+click idI11060285 "../profiles/Shimon-Meir-%D7%9E%D7%90%D7%99%D7%A8-Hochman" "Shimon Meir מאיר Hochman"
+marriage_idF3770106 --> idI11060285
+idI39114550["Yisrael Hochman"]
+class idI39114550 internal-link
+click idI39114550 "../profiles/Yisrael-Hochman" "Yisrael Hochman"
+marriage_idF3770106 --> idI39114550
+idI39114997["Binyamin Hochman"]
+class idI39114997 internal-link
+click idI39114997 "../profiles/Binyamin-Hochman" "Binyamin Hochman"
+marriage_idF3770106 --> idI39114997
+idI39115025["Kolman Hochman"]
+class idI39115025 internal-link
+click idI39115025 "../profiles/Kolman-Hochman" "Kolman Hochman"
+marriage_idF3770106 --> idI39115025
+idI39114938["Avraham Hochman"]
+class idI39114938 internal-link
+click idI39114938 "../profiles/Avraham-Hochman" "Avraham Hochman"
+marriage_idF3770106 --> idI39114938
+idI39114448["'Bobka' Hochman"]
+class idI39114448 internal-link
+click idI39114448 "../profiles/_Bobka_-Hochman" "'Bobka' Hochman"
+marriage_idF3770106 --> idI39114448
+idI11032861["Haim Yehuda חיים יהודה Hochman"]
+class idI11032861 internal-link
+click idI11032861 "../profiles/Haim-Yehuda-%D7%97%D7%99%D7%99%D7%9D-%D7%99%D7%94%D7%95%D7%93%D7%94-Hochman" "Haim Yehuda חיים יהודה Hochman"
+marriage_idF3770106 --> idI11032861
+idI38740193["Josef Hochman"]
+class idI38740193 internal-link
+click idI38740193 "../profiles/Josef-Hochman" "Josef Hochman"
+marriage_idF3770106 --> idI38740193
+idI39114787["Sholem Hochman"]
+class idI39114787 internal-link
+click idI39114787 "../profiles/Sholem-Hochman" "Sholem Hochman"
+marriage_idF3770106 --> idI39114787
+```
+
+## Ancestors (up to 2 Gen.)
+```mermaid
+flowchart TD
+classDef person fill:#e1f5fe,stroke:#0277bd,stroke-width:2px;
+classDef internal-link fill:#e1f5fe,stroke:#0277bd,stroke-width:2px;
+classDef current fill:#bbdefb,stroke:#1976d2,stroke-width:3px;
+idI11052340["Moshe משה Hoffman Hochman"]
+class idI11052340 current
+click idI11052340 "../profiles/Moshe-%D7%9E%D7%A9%D7%94-Hoffman-Hochman" "Moshe משה Hoffman Hochman"
+idI11032885["Wolf זאב Hochman"]
+class idI11032885 internal-link
+click idI11032885 "../profiles/Wolf-%D7%96%D7%90%D7%91-Hochman" "Wolf זאב Hochman"
+idI11032895["Beile ביילא Hochman Elizafan"]
+class idI11032895 internal-link
+click idI11032895 "../profiles/Beile-%D7%91%D7%99%D7%99%D7%9C%D7%90-Hochman-Elizafan" "Beile ביילא Hochman Elizafan"
+marriage_idF3770106((" "))
+idI11032885 --- marriage_idF3770106
+idI11032895 --- marriage_idF3770106
+marriage_idF3770106 --> idI11052340
+idI34776522165["Mordechai מרדכי Elizafan"]
+class idI34776522165 internal-link
+click idI34776522165 "../profiles/Mordechai-%D7%9E%D7%A8%D7%93%D7%9B%D7%99-Elizafan" "Mordechai מרדכי Elizafan"
+idI34776522165 --> idI11032895
+```
+
+## Nuclear Family
+```mermaid
+flowchart TD
+classDef person fill:#e1f5fe,stroke:#0277bd,stroke-width:2px;
+classDef internal-link fill:#e1f5fe,stroke:#0277bd,stroke-width:2px;
+classDef current fill:#bbdefb,stroke:#1976d2,stroke-width:3px;
+idI11052340["Moshe משה Hoffman Hochman"]
+class idI11052340 current
+click idI11052340 "../profiles/Moshe-%D7%9E%D7%A9%D7%94-Hoffman-Hochman" "Moshe משה Hoffman Hochman"
+idI38735986["Tobl Hochman (Hoffman) Zitserman"]
+class idI38735986 internal-link
+click idI38735986 "../profiles/Tobl-Hochman-%28Hoffman%29-Zitserman" "Tobl Hochman (Hoffman) Zitserman"
+marriage_idF3776794((" "))
+idI11052340 --- marriage_idF3776794
+idI38735986 --- marriage_idF3776794
+idI38736293["Bella Hoffman"]
+class idI38736293 internal-link
+click idI38736293 "../profiles/Bella-Hoffman" "Bella Hoffman"
+marriage_idF3776794 --> idI38736293
+idI38736184["Aaron Harry אהרון Hoffman"]
+class idI38736184 internal-link
+click idI38736184 "../profiles/Aaron-Harry-%D7%90%D7%94%D7%A8%D7%95%D7%9F-Hoffman" "Aaron Harry אהרון Hoffman"
+marriage_idF3776794 --> idI38736184
+idI7293825["Wolf Hoffman"]
+class idI7293825 internal-link
+click idI7293825 "../profiles/Wolf-Hoffman-Valda" "Wolf Hoffman"
+marriage_idF3776794 --> idI7293825
+idI61277011["Alyce Breazeale Hoffman"]
+class idI61277011 internal-link
+click idI61277011 "../profiles/Alyce-Breazeale-Hoffman" "Alyce Breazeale Hoffman"
+marriage_idF3776794 --> idI61277011
+idI11052350["Hyman Judah Hoffman"]
+class idI11052350 internal-link
+click idI11052350 "../profiles/Hyman-Judah-Hoffman" "Hyman Judah Hoffman"
+marriage_idF3776794 --> idI11052350
+idI38736559["Jack Hoffman"]
+class idI38736559 internal-link
+click idI38736559 "../profiles/Jack-Hoffman" "Jack Hoffman"
+marriage_idF3776794 --> idI38736559
+```
