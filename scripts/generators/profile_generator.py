@@ -507,6 +507,15 @@ class ProfileGenerator:
             '<dl class="profile-info-list">'
         ]
         
+        # NICK - Show as first field if exists
+        if person.get("nick"):
+            nick_list = person["nick"]
+            if isinstance(nick_list, str):
+                nick_list = [nick_list]
+            nick_value = ", ".join(nick_list)
+            if nick_value:
+                lines.append(f'<dt>Nick:</dt><dd>{nick_value}</dd>')
+        
         # Birth
         birth_place_html = self.link_converter.wikilink_place(
             person["birth_place"], format="html"

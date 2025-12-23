@@ -92,6 +92,9 @@ def parse_gedcom_file(path: str) -> Tuple[Dict, Dict]:
                 
                 if tag == "NAME":
                     indi["NAME"] = data
+                    # Initialize NICK list if not exists
+                    if "NICK" not in indi:
+                        indi["NICK"] = []
                 elif tag == "FAMC":
                     indi["FAMC"] = data
                 elif tag == "FAMS":
@@ -112,6 +115,9 @@ def parse_gedcom_file(path: str) -> Tuple[Dict, Dict]:
                     indi.setdefault("BIRT", {})[tag] = data
                 elif in_deat:
                     indi.setdefault("DEAT", {})[tag] = data
+                elif tag == "NICK":
+                    # Handle NICK as level 2 under NAME
+                    indi.setdefault("NICK", []).append(data)
 
         # Parse family records
         elif current_type == "FAM":

@@ -24,6 +24,7 @@ def norm_individual(iid: str, data: Dict) -> Dict:
         {
             "id": "@I123@",
             "name": "John Doe",  # Without slashes
+            "nick": ["Johnny", "John"],  # List of nicknames (can be empty)
             "birth_date": "1900",
             "birth_place": "New York",
             "death_date": "1980",
@@ -61,9 +62,17 @@ def norm_individual(iid: str, data: Dict) -> Dict:
                 is_private = True
                 break
     
+    # Extract NICK fields (can be multiple)
+    nick = data.get("NICK", [])
+    if isinstance(nick, str):
+        nick = [nick]
+    # Filter out empty strings
+    nick = [n.strip() for n in nick if n and n.strip()]
+    
     return {
         "id": iid,
         "name": name,
+        "nick": nick,
         "birth_date": birt.get("DATE", ""),
         "birth_place": birt.get("PLAC", ""),
         "death_date": deat.get("DATE", ""),
