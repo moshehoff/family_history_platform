@@ -293,7 +293,7 @@ Examples:
     people_dir = args.output
     pages_dir = os.path.join(os.path.dirname(args.output), "pages")
     
-    write_people_index(people_dir, pages_dir)
+    write_people_index(people_dir, pages_dir, individuals)
     write_bios_index(people_dir, args.bios_dir, pages_dir)
     write_gallery_index(people_dir, DEFAULT_STATIC_DIR, pages_dir)
     write_family_data_json(individuals, families, args.output)

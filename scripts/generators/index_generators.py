@@ -22,16 +22,20 @@ from config import DEFAULT_OUTPUT_DIR, DEFAULT_STATIC_DIR
 logger = get_logger(__name__)
 
 
-def write_people_index(people_dir: str, pages_dir: str):
+def write_people_index(people_dir: str, pages_dir: str, individuals: Dict = None):
     """
     Create all-profiles.md with links to all profiles.
+    Excludes private profiles if individuals dictionary is provided.
     
     Args:
         people_dir: Directory containing profile markdown files
         pages_dir: Directory to write index page to
+        individuals: Optional dictionary of individuals from GEDCOM
+                     (used to filter out private profiles)
     
     Example:
         >>> write_people_index("site/content/profiles", "site/content/pages")
+        >>> write_people_index("site/content/profiles", "site/content/pages", individuals)
     """
     logger.info("Creating all-profiles index")
     
@@ -41,13 +45,34 @@ def write_people_index(people_dir: str, pages_dir: str):
     )
     
     lines = ["## All Profiles\n"]
+    profile_count = 0
     for fname in files:
+        # Check if profile is private (if individuals dict is provided)
+        if individuals:
+            profile_path = os.path.join(people_dir, fname)
+            gedcom_id = _extract_gedcom_id(profile_path)
+            if gedcom_id:
+                # Try to find the individual in the dict (with @ symbols)
+                # GEDCOM IDs in the dict might have @ symbols
+                pid_with_at = f"@{gedcom_id}@"
+                pid_without_at = gedcom_id
+                
+                person = None
+                if pid_with_at in individuals:
+                    person = individuals[pid_with_at]
+                elif pid_without_at in individuals:
+                    person = individuals[pid_without_at]
+                
+                if person and _is_private_tag(person):
+                    continue  # Skip private profiles
+        
         # Use slugified name (with dashes) for URL
         slugified_name = fname[:-3]  # strip .md
         # Display name with spaces instead of dashes (same as profiles-of-interest)
         display_name = slugified_name.replace('-', ' ')
         url = "/profiles/" + urllib.parse.quote(slugified_name)
         lines.append(f"* [{display_name}]({url})")
+        profile_count += 1
     
     os.makedirs(pages_dir, exist_ok=True)
     output_path = os.path.join(pages_dir, "all-profiles.md")
@@ -55,7 +80,7 @@ def write_people_index(people_dir: str, pages_dir: str):
     try:
         with open(output_path, "w", encoding="utf-8") as f:
             f.write("\n".join(lines) + "\n")
-        logger.info(f"Created all-profiles.md with {len(files)} profiles")
+        logger.info(f"Created all-profiles.md with {profile_count} profiles")
     except Exception as e:
         logger.error(f"Failed to write all-profiles.md: {e}")
 
@@ -475,6 +500,22 @@ def _collect_bio_ids(bios_dir: str) -> set:
     return bio_ids
 
 
+def _is_private_tag(indi: Dict) -> bool:
+    """
+    Check if an individual record has _PRIVATE tag set to true.
+    
+    Args:
+        indi: Individual record dictionary
+    
+    Returns:
+        True if _PRIVATE tag exists and is set to Y/YES/1/TRUE (case-insensitive)
+    """
+    if "_PRIVATE" not in indi:
+        return False
+    value = str(indi["_PRIVATE"]).upper().strip()
+    return value in ("Y", "YES", "1", "TRUE")
+
+
 def _extract_gedcom_id(profile_path: str) -> str:
     """
     Extract GEDCOM ID from profile frontmatter.
@@ -578,6 +619,9 @@ def write_family_pages(individuals: Dict, people_dir: str, pages_dir: str, id_to
         profiles = []
         for pid in person_ids:
             person = individuals[pid]
+            # Skip private profiles
+            if _is_private_tag(person):
+                continue
             name = person.get("NAME", "Unknown")
             slug = id_to_slug.get(pid, None)
             if slug:
