@@ -606,10 +606,10 @@ def write_family_pages(individuals: Dict, people_dir: str, pages_dir: str, id_to
         # Get profile links for this family
         lines = [
             f"---",
-            f"title: {display_name}",
+            f"title: {display_name} Profiles",
             f"---",
             f"",
-            f"## {display_name}",
+            f"## {display_name} Profiles",
             f"",
             f"This page lists all family members from the {display_name} tree.",
             f""
