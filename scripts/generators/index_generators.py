@@ -366,11 +366,28 @@ def copy_source_content(src_content_dir: str, dst_content_dir: str, link_convert
     
     os.makedirs(dst_content_dir, exist_ok=True)
     
-    # Copy index.md
+    # Copy and process index.md
     src_index = os.path.join(src_content_dir, "index.md")
     if os.path.exists(src_index):
         dst_index = os.path.join(dst_content_dir, "index.md")
-        copy_file_safe(src_index, dst_index)
+        try:
+            # Read content
+            with open(src_index, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            # Process [Name|ID] links if converter available
+            # For static pages, convert to Markdown links (not HTML) since Quartz will process them
+            if link_converter:
+                content = link_converter.convert_ids_to_markdown_links(content)
+            
+            # Write processed content
+            with open(dst_index, 'w', encoding='utf-8') as f:
+                f.write(content)
+            logger.debug("Copied and processed index.md")
+        except Exception as e:
+            logger.error(f"Failed to process index.md: {e}")
+            # Fallback to simple copy
+            copy_file_safe(src_index, dst_index)
     
     # Copy and process pages/ directory
     src_pages = os.path.join(src_content_dir, "pages")
