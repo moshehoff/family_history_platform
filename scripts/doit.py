@@ -80,7 +80,7 @@ def _print_errors_and_warnings_summary(error_collector, logger):
     
     # Print errors
     if errors:
-        print(f"\n❌ ERRORS ({len(errors)}):")
+        print(f"\n[ERROR] ERRORS ({len(errors)}):")
         print("-" * 70)
         for i, record in enumerate(errors, 1):
             msg = record.getMessage()
@@ -92,7 +92,7 @@ def _print_errors_and_warnings_summary(error_collector, logger):
     
     # Print warnings
     if warnings:
-        print(f"\n⚠️  WARNINGS ({len(warnings)}):")
+        print(f"\n[WARNING] WARNINGS ({len(warnings)}):")
         print("-" * 70)
         for i, record in enumerate(warnings, 1):
             msg = record.getMessage()
@@ -102,9 +102,9 @@ def _print_errors_and_warnings_summary(error_collector, logger):
     # Print summary
     print("\n" + "=" * 70)
     if errors:
-        print(f"⚠️  Build completed with {len(errors)} error(s) and {len(warnings)} warning(s)")
+        print(f"[WARNING] Build completed with {len(errors)} error(s) and {len(warnings)} warning(s)")
     else:
-        print(f"✓ Build completed with {len(warnings)} warning(s)")
+        print(f"[OK] Build completed with {len(warnings)} warning(s)")
     print("=" * 70 + "\n")
 
 
@@ -306,7 +306,7 @@ Examples:
     write_family_images_pages(individuals, pages_dir)
     
     logger.info("=" * 70)
-    logger.info("✓ Done!")
+    logger.info("[OK] Done!")
     logger.info(f"Generated {len(individuals)} profiles in {args.output}")
     logger.info("=" * 70)
     

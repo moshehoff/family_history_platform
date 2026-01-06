@@ -116,7 +116,7 @@ class ChaptersIndexHandler:
         # Write index to file
         self._write_chapters_index(chapters_index)
         
-        logger.info(f"✓ Chapters index created with {len(chapters_index)} profiles")
+        logger.info(f"[OK] Chapters index created with {len(chapters_index)} profiles")
         return chapters_index
     
     # ========================================================================

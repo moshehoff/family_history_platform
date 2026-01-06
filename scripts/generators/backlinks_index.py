@@ -121,7 +121,7 @@ class BacklinksIndexHandler:
         self._write_backlinks_index(backlinks_index)
         
         total_backlinks = sum(len(links) for links in backlinks_index.values())
-        logger.info(f"✓ Backlinks index created: {len(backlinks_index)} profiles with {total_backlinks} total backlinks")
+        logger.info(f"[OK] Backlinks index created: {len(backlinks_index)} profiles with {total_backlinks} total backlinks")
         
         return backlinks_index
     

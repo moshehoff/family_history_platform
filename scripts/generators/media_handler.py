@@ -109,7 +109,7 @@ class MediaIndexHandler:
         # Copy bios images to content directory
         self._copy_bios_images()
         
-        logger.info(f"✓ Media index created successfully")
+        logger.info(f"[OK] Media index created successfully")
         return index
     
     # ========================================================================

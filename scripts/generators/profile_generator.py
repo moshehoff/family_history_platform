@@ -106,7 +106,7 @@ class ProfileGenerator:
         
         if skipped_private > 0:
             logger.info(f"Skipped {skipped_private} private profile(s)")
-        logger.info(f"✓ Generated {count} profiles successfully")
+        logger.info(f"[OK] Generated {count} profiles successfully")
         return self.id_to_slug
     
     # ========================================================================
