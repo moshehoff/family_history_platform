@@ -22,7 +22,7 @@ from config import DEFAULT_OUTPUT_DIR, DEFAULT_STATIC_DIR
 logger = get_logger(__name__)
 
 
-def write_people_index(people_dir: str, pages_dir: str, individuals: Dict = None):
+def write_people_index(people_dir: str, pages_dir: str, individuals: Dict = None, id_to_slug: Dict = None):
     """
     Create all-profiles.md with links to all profiles.
     Excludes private profiles if individuals dictionary is provided.
@@ -32,12 +32,19 @@ def write_people_index(people_dir: str, pages_dir: str, individuals: Dict = None
         pages_dir: Directory to write index page to
         individuals: Optional dictionary of individuals from GEDCOM
                      (used to filter out private profiles)
+        id_to_slug: Optional mapping from person ID to slug (for fast lookup)
     
     Example:
         >>> write_people_index("site/content/profiles", "site/content/pages")
-        >>> write_people_index("site/content/profiles", "site/content/pages", individuals)
+        >>> write_people_index("site/content/profiles", "site/content/pages", individuals, id_to_slug)
     """
     logger.info("Creating all-profiles index")
+    
+    # Build reverse mapping from slug to ID if id_to_slug is provided
+    slug_to_id = {}
+    if id_to_slug:
+        for person_id, slug in id_to_slug.items():
+            slug_to_id[slug] = person_id
     
     files = sorted(
         f for f in os.listdir(people_dir)
@@ -47,15 +54,27 @@ def write_people_index(people_dir: str, pages_dir: str, individuals: Dict = None
     lines = ["## All Profiles\n"]
     profile_count = 0
     for fname in files:
+        # Use slugified name (with dashes) for URL
+        slugified_name = fname[:-3]  # strip .md
+        
         # Check if profile is private (if individuals dict is provided)
         if individuals:
-            profile_path = os.path.join(people_dir, fname)
-            gedcom_id = _extract_gedcom_id(profile_path)
-            if gedcom_id:
+            # Try to find ID from slug using reverse mapping (fast)
+            person_id = None
+            if id_to_slug and slugified_name in slug_to_id:
+                person_id = slug_to_id[slugified_name]
+            else:
+                # Fallback: read file to extract ID (slow, but only if needed)
+                profile_path = os.path.join(people_dir, fname)
+                gedcom_id = _extract_gedcom_id(profile_path)
+                if gedcom_id:
+                    person_id = f"@{gedcom_id}@" if not gedcom_id.startswith('@') else gedcom_id
+            
+            if person_id:
                 # Try to find the individual in the dict (with @ symbols)
                 # GEDCOM IDs in the dict might have @ symbols
-                pid_with_at = f"@{gedcom_id}@"
-                pid_without_at = gedcom_id
+                pid_with_at = person_id if person_id.startswith('@') else f"@{person_id}@"
+                pid_without_at = person_id.strip('@')
                 
                 person = None
                 if pid_with_at in individuals:
@@ -66,8 +85,6 @@ def write_people_index(people_dir: str, pages_dir: str, individuals: Dict = None
                 if person and _is_private_tag(person):
                     continue  # Skip private profiles
         
-        # Use slugified name (with dashes) for URL
-        slugified_name = fname[:-3]  # strip .md
         # Display name with spaces instead of dashes (same as profiles-of-interest)
         display_name = slugified_name.replace('-', ' ')
         url = "/profiles/" + urllib.parse.quote(slugified_name)
@@ -85,7 +102,7 @@ def write_people_index(people_dir: str, pages_dir: str, individuals: Dict = None
         logger.error(f"Failed to write all-profiles.md: {e}")
 
 
-def write_bios_index(people_dir: str, bios_dir: str, pages_dir: str):
+def write_bios_index(people_dir: str, bios_dir: str, pages_dir: str, id_to_slug: Dict = None):
     """
     Create profiles-of-interest.md with links to profiles that have biographies.
     
@@ -93,9 +110,10 @@ def write_bios_index(people_dir: str, bios_dir: str, pages_dir: str):
         people_dir: Directory containing profile markdown files
         bios_dir: Directory containing biography files
         pages_dir: Directory to write index page to
+        id_to_slug: Optional mapping from person ID to slug (for fast lookup)
     
     Example:
-        >>> write_bios_index("site/content/profiles", "bios", "site/content/pages")
+        >>> write_bios_index("site/content/profiles", "bios", "site/content/pages", id_to_slug)
     """
     logger.info("Creating profiles-of-interest index")
     
@@ -103,20 +121,34 @@ def write_bios_index(people_dir: str, bios_dir: str, pages_dir: str):
     bio_ids = _collect_bio_ids(bios_dir)
     logger.info(f"Found {len(bio_ids)} profiles with biographies")
     
+    # Build reverse mapping from slug to ID if id_to_slug is provided
+    slug_to_id = {}
+    if id_to_slug:
+        for person_id, slug in id_to_slug.items():
+            # Remove @ symbols from person_id for comparison
+            clean_id = person_id.strip('@')
+            slug_to_id[slug] = clean_id
+    
     # Get all profile files that have matching bios
     profiles_with_bios = []
     for fname in sorted(os.listdir(people_dir)):
         if not fname.endswith('.md'):
             continue
         
-        profile_path = os.path.join(people_dir, fname)
-        gedcom_id = _extract_gedcom_id(profile_path)
+        slugified_name = fname[:-3]  # strip .md
+        
+        # Try to find ID from slug using reverse mapping (fast)
+        gedcom_id = None
+        if id_to_slug and slugified_name in slug_to_id:
+            gedcom_id = slug_to_id[slugified_name]
+        else:
+            # Fallback: read file to extract ID (slow, but only if needed)
+            profile_path = os.path.join(people_dir, fname)
+            gedcom_id = _extract_gedcom_id(profile_path)
         
         if gedcom_id and gedcom_id in bio_ids:
-            # Use slugified name (with dashes instead of spaces) for URL
-            slugified_name = fname[:-3].replace(' ', '-')
             # Display name with spaces instead of dashes
-            display_name = fname[:-3].replace('-', ' ')
+            display_name = slugified_name.replace('-', ' ')
             profiles_with_bios.append((display_name, slugified_name))
     
     # Create the index page
@@ -143,7 +175,7 @@ def write_bios_index(people_dir: str, bios_dir: str, pages_dir: str):
         logger.error(f"Failed to write profiles-of-interest.md: {e}")
 
 
-def write_gallery_index(people_dir: str, static_dir: str, pages_dir: str):
+def write_gallery_index(people_dir: str, static_dir: str, pages_dir: str, id_to_slug: Dict = None):
     """
     Create profiles-with-gallery.md with links to profiles that have images.
     
@@ -151,9 +183,10 @@ def write_gallery_index(people_dir: str, static_dir: str, pages_dir: str):
         people_dir: Directory containing profile markdown files
         static_dir: Directory containing media-index.json
         pages_dir: Directory to write index page to
+        id_to_slug: Optional mapping from person ID to slug (for fast lookup)
     
     Example:
-        >>> write_gallery_index("site/content/profiles", "site/quartz/static", "site/content/pages")
+        >>> write_gallery_index("site/content/profiles", "site/quartz/static", "site/content/pages", id_to_slug)
     """
     logger.info("Creating profiles-with-gallery index")
     
@@ -181,20 +214,34 @@ def write_gallery_index(people_dir: str, static_dir: str, pages_dir: str):
     
     logger.info(f"Found {len(gallery_ids)} profiles with gallery images")
     
+    # Build reverse mapping from slug to ID if id_to_slug is provided
+    slug_to_id = {}
+    if id_to_slug:
+        for person_id, slug in id_to_slug.items():
+            # Remove @ symbols from person_id for comparison
+            clean_id = person_id.strip('@')
+            slug_to_id[slug] = clean_id
+    
     # Get all profile files that have matching gallery
     profiles_with_gallery = []
     for fname in sorted(os.listdir(people_dir)):
         if not fname.endswith('.md'):
             continue
         
-        profile_path = os.path.join(people_dir, fname)
-        gedcom_id = _extract_gedcom_id(profile_path)
+        slugified_name = fname[:-3]  # strip .md
+        
+        # Try to find ID from slug using reverse mapping (fast)
+        gedcom_id = None
+        if id_to_slug and slugified_name in slug_to_id:
+            gedcom_id = slug_to_id[slugified_name]
+        else:
+            # Fallback: read file to extract ID (slow, but only if needed)
+            profile_path = os.path.join(people_dir, fname)
+            gedcom_id = _extract_gedcom_id(profile_path)
         
         if gedcom_id and gedcom_id in gallery_ids:
-            # Use slugified name (with dashes instead of spaces) for URL
-            slugified_name = fname[:-3].replace(' ', '-')
             # Display name with spaces instead of dashes
-            display_name = fname[:-3].replace('-', ' ')
+            display_name = slugified_name.replace('-', ' ')
             profiles_with_gallery.append((display_name, slugified_name))
     
     # Create the index page
@@ -389,7 +436,7 @@ def copy_source_content(src_content_dir: str, dst_content_dir: str, link_convert
             # Fallback to simple copy
             copy_file_safe(src_index, dst_index)
     
-    # Copy and process pages/ directory
+    # Copy and process pages/ directory recursively
     src_pages = os.path.join(src_content_dir, "pages")
     dst_pages = os.path.join(dst_content_dir, "pages")
     
@@ -398,45 +445,48 @@ def copy_source_content(src_content_dir: str, dst_content_dir: str, link_convert
     
     if os.path.exists(src_pages):
         os.makedirs(dst_pages, exist_ok=True)
-        for filename in os.listdir(src_pages):
-            src_path = os.path.join(src_pages, filename)
-            dst_path = os.path.join(dst_pages, filename)
+        
+        # Process all files recursively using os.walk
+        for root, dirs, files in os.walk(src_pages):
+            # Filter out hidden/system directories from dirs list (modifies in-place)
+            dirs[:] = [d for d in dirs if d not in skip_dirs and not d.startswith('.')]
             
-            # Skip hidden/system directories
-            if filename in skip_dirs or filename.startswith('.'):
-                logger.debug(f"  Skipping {filename} (hidden/system directory)")
-                continue
+            # Calculate relative path from src_pages
+            rel_path = os.path.relpath(root, src_pages)
+            dst_root = os.path.join(dst_pages, rel_path) if rel_path != '.' else dst_pages
+            os.makedirs(dst_root, exist_ok=True)
             
-            # Handle directories (e.g., hoffmans/, zitsermans/)
-            if os.path.isdir(src_path):
-                copy_directory_safe(src_path, dst_path)
-                continue
-            
-            # Handle non-markdown files (images, etc.)
-            if not filename.endswith('.md'):
-                copy_file_safe(src_path, dst_path)
-                continue
-            
-            # Handle markdown files with link processing
-            try:
-                # Read content
-                with open(src_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
+            for filename in files:
+                src_path = os.path.join(root, filename)
+                dst_path = os.path.join(dst_root, filename)
                 
-                # Process [Name|ID] links if converter available
-                # For static pages, convert to Markdown links (not HTML) since Quartz will process them
-                if link_converter:
-                    content = link_converter.convert_ids_to_markdown_links(content)
+                # Handle non-markdown files (images, etc.) - copy as-is
+                if not filename.endswith('.md'):
+                    copy_file_safe(src_path, dst_path)
+                    continue
                 
-                # Write processed content
-                with open(dst_path, 'w', encoding='utf-8') as f:
-                    f.write(content)
-                
-                logger.debug(f"  Copied and processed {filename}")
-            except Exception as e:
-                logger.error(f"Failed to process {filename}: {e}")
-                # Fallback to simple copy
-                copy_file_safe(src_path, dst_path)
+                # Handle markdown files with link processing
+                try:
+                    # Read content
+                    with open(src_path, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    
+                    # Process [Name|ID] links if converter available
+                    # For static pages, convert to Markdown links (not HTML) since Quartz will process them
+                    if link_converter:
+                        content = link_converter.convert_ids_to_markdown_links(content)
+                    
+                    # Write processed content
+                    with open(dst_path, 'w', encoding='utf-8') as f:
+                        f.write(content)
+                    
+                    display_path = os.path.join(rel_path, filename) if rel_path != '.' else filename
+                    logger.debug(f"  Copied and processed {display_path}")
+                except Exception as e:
+                    display_path = os.path.join(rel_path, filename) if rel_path != '.' else filename
+                    logger.error(f"Failed to process {display_path}: {e}")
+                    # Fallback to simple copy
+                    copy_file_safe(src_path, dst_path)
 
 
 def clean_project():
