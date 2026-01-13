@@ -1,7 +1,7 @@
 @use "./base.scss";
 
 // Family History Website - Custom styles
-@import "./family-profiles.scss";
+@use "./family-profiles.scss" as *;
 
 // Force light mode - disable dark mode entirely
 :root {
